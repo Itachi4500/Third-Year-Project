@@ -9,6 +9,7 @@ from utils.powerbi_pipeline import powerbi_pipeline
 from utils.live_dashboard import live_dashboard
 from utils.refresh import refresh_data
 from utils.memory import remember, recall, show_memory, clear_all_memory
+from utils.layout_utils import select_dashboard_size
 
 # ------------------------------
 # 🌙 Theme Switcher
