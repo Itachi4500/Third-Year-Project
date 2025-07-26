@@ -7,7 +7,7 @@ from utils.modeler import run_modeling
 from utils.exporter import export_data
 from utils.powerbi_pipeline import powerbi_pipeline
 from utils.live_dashboard import live_dashboard
-
+from utils.refresh import refresh_data
 
 # ------------------------------
 # 🌙 Theme Switcher
@@ -85,6 +85,9 @@ menu = {
 }
 choice = st.sidebar.radio("📂 **Select Operation**", list(menu.keys()))
 
+# Refresh the dataset
+refresh_data()
+
 # ------------------------------
 # Dataset State
 # ------------------------------
@@ -108,8 +111,12 @@ st.title(menu[choice])
 st.markdown("---")
 
 if choice == "📁 Upload Dataset":
-    uploaded_file = st.file_uploader("📤 Upload your dataset (.csv or .xlsx)", type=["csv", "xlsx"])
+    uploaded_file = st.file_uploader("Upload your dataset", type=["csv", "xlsx"])
     if uploaded_file:
+        df = pd.read_csv(uploaded_file)  # or pd.read_excel()
+        st.session_state.raw_df = df.copy()        # Original version
+        st.session_state.cleaned_df = df.copy()    # Cleaned/editable version
+
         if uploaded_file.name.endswith(".csv"):
             st.session_state.df = pd.read_csv(uploaded_file)
         else:
