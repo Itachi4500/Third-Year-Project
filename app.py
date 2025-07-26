@@ -173,9 +173,7 @@ elif choice == "🧹 Data Cleaning":
 
     else:
         st.warning("Please upload a dataset first.")
-        
-    else:
-        st.warning("⚠️ Please upload a dataset first.")
+
 
 elif choice == "📊 Exploratory Data Analysis":
     if st.session_state.df is not None:
