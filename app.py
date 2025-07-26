@@ -91,6 +91,9 @@ choice = st.sidebar.radio("📂 **Select Operation**", list(menu.keys()))
 # Refresh the dataset
 refresh_data()
 
+if "cleaned_df" in st.session_state:
+    df = st.session_state.cleaned_df
+
 # ------------------------------
 # Dataset State
 # ------------------------------
