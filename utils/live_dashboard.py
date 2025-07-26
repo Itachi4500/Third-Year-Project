@@ -5,16 +5,33 @@ import numpy as np
 import time
 
 def live_dashboard(df):
+    st.set_page_config(layout="wide")  # Ensures full width is used
     st.title("📡 Live Dashboard")
 
-    # KPI Summary
+    # ----------------------- Page Size Settings ------------------------
+    with st.expander("🧩 Dashboard Page Size Configuration"):
+        size_option = st.selectbox("Choose Page Size", ["Default (1280x720)", "4:3 (960x720)", "Letter (816x1056)", "Custom Size"])
+        
+        if size_option == "Default (1280x720)":
+            width, height = 1280, 720
+        elif size_option == "4:3 (960x720)":
+            width, height = 960, 720
+        elif size_option == "Letter (816x1056)":
+            width, height = 816, 1056
+        else:
+            width = st.number_input("Custom Width", min_value=400, max_value=3840, value=1280, step=10)
+            height = st.number_input("Custom Height", min_value=300, max_value=2160, value=720, step=10)
+
+        st.markdown(f"**Selected Size:** `{width} x {height}`")
+
+    # ------------------------- KPI Section ----------------------------
     st.subheader("📊 Key Performance Indicators")
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Rows", df.shape[0])
     col2.metric("Total Columns", df.shape[1])
     col3.metric("Missing Values", df.isnull().sum().sum())
 
-    # Realtime Simulation Option
+    # -------------------- Live Simulation Option ----------------------
     with st.expander("🔁 Simulate Live Data Refresh"):
         interval = st.slider("Refresh Interval (seconds)", 1, 10, 5)
         simulate = st.checkbox("Start Simulation")
@@ -26,7 +43,7 @@ def live_dashboard(df):
 
     st.divider()
 
-    # Filters
+    # --------------------------- Filters ------------------------------
     st.subheader("🎯 Filter Data")
     filter_column = st.selectbox("Select Column to Filter", ["None"] + list(df.columns))
     if filter_column != "None":
@@ -36,7 +53,7 @@ def live_dashboard(df):
 
     st.divider()
 
-    # Chart Section
+    # -------------------------- Chart Builder --------------------------
     st.subheader("📈 Visual Insights")
 
     chart_col1, chart_col2 = st.columns(2)
@@ -50,18 +67,18 @@ def live_dashboard(df):
 
     fig = None
     if chart_type == "Bar":
-        fig = px.bar(df, x=x_col, y=y_col, title=f"{y_col} by {x_col}")
+        fig = px.bar(df, x=x_col, y=y_col, title=f"{y_col} by {x_col}", width=width, height=height)
     elif chart_type == "Line":
-        fig = px.line(df, x=x_col, y=y_col, title=f"{y_col} over {x_col}")
+        fig = px.line(df, x=x_col, y=y_col, title=f"{y_col} over {x_col}", width=width, height=height)
     elif chart_type == "Scatter":
-        fig = px.scatter(df, x=x_col, y=y_col, title=f"{y_col} vs {x_col}")
+        fig = px.scatter(df, x=x_col, y=y_col, title=f"{y_col} vs {x_col}", width=width, height=height)
     elif chart_type == "Pie":
-        fig = px.pie(df, names=x_col, title=f"Pie Chart of {x_col}")
+        fig = px.pie(df, names=x_col, title=f"Pie Chart of {x_col}", width=width, height=height)
 
     if fig:
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=False)
 
-    # Top N Categories
+    # -------------------------- Top N Section --------------------------
     st.subheader("📌 Top N Categories")
     group_col = st.selectbox("Group by column", df.columns)
     metric_col = st.selectbox("Metric column", df.select_dtypes(include=np.number).columns)
