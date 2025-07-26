@@ -121,7 +121,8 @@ if choice == "📁 Upload Dataset":
         if file_name.endswith(".csv"):
             try:
                 df = pd.read_csv(uploaded_file)
-                st.session_state.uploaded_df = df.head()
+                st.session_state.uploaded_df = df
+                df.head()
                 st.success("✅ CSV file uploaded successfully!")
             except Exception as e:
                 st.error(f"❌ Error reading CSV file: {e}")
@@ -129,7 +130,8 @@ if choice == "📁 Upload Dataset":
         elif file_name.endswith(".xlsx"):
             try:
                 df = pd.read_excel(uploaded_file)
-                st.session_state.uploaded_df = df.head()
+                st.session_state.uploaded_df = df
+                df.head()
                 st.success("✅ Excel file uploaded successfully!")
             except Exception as e:
                 st.error(f"❌ Error reading Excel file: {e}")
