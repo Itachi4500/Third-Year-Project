@@ -8,6 +8,7 @@ from utils.exporter import export_data
 from utils.powerbi_pipeline import powerbi_pipeline
 from utils.live_dashboard import live_dashboard
 from utils.refresh import refresh_data
+from utils.memory import remember, recall, show_memory, clear_all_memory
 
 # ------------------------------
 # 🌙 Theme Switcher
@@ -125,8 +126,54 @@ if choice == "📁 Upload Dataset":
         st.dataframe(st.session_state.df.head())
 
 elif choice == "🧹 Data Cleaning":
-    if st.session_state.df is not None:
-        st.session_state.df = clean_data(st.session_state.df)
+    st.subheader("🧹 Data Cleaning")
+
+    if "uploaded_df" in st.session_state:
+        df = st.session_state.uploaded_df.copy()
+
+        cleaning_steps = []
+
+        # 1. Drop missing values
+        if st.button("🧽 Drop Missing Values"):
+            df.dropna(inplace=True)
+            cleaning_steps.append("Dropped missing values")
+            st.success("Missing values removed!")
+
+        # 2. Normalize numerical columns
+        numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
+        cols_to_scale = st.multiselect("🔄 Normalize columns", numeric_cols)
+
+        if st.button("⚖️ Normalize Selected Columns"):
+            for col in cols_to_scale:
+                min_val = df[col].min()
+                max_val = df[col].max()
+                df[col] = (df[col] - min_val) / (max_val - min_val)
+            cleaning_steps.append(f"Normalized columns: {', '.join(cols_to_scale)}")
+            st.success("Selected columns normalized!")
+
+        # Save final cleaned DataFrame
+        st.session_state.cleaned_df = df
+
+        # 🧠 Memory Logic
+        if cleaning_steps:
+            remember("cleaning_steps", cleaning_steps)
+
+        st.markdown("---")
+        st.markdown("### 🧠 Cleaning Memory")
+
+        steps = recall("cleaning_steps")
+        if steps:
+            st.info(f"Cleaning steps learned: {steps}")
+
+        show_memory()
+
+        if st.button("🗑️ Clear Memory"):
+            clear_all_memory()
+            st.success("Memory cleared.")
+
+    else:
+        st.warning("Please upload a dataset first.")
+        
     else:
         st.warning("⚠️ Please upload a dataset first.")
 
