@@ -112,31 +112,14 @@ st.title(menu[choice])
 st.markdown("---")
 
 if choice == "📁 Upload Dataset":
-    st.title("📁 Upload Your Dataset")
-    uploaded_file = st.file_uploader("Upload CSV or Excel", type=["csv", "xlsx"])
-
-    if uploaded_file is not None:
-        file_name = uploaded_file.name
-
-        if file_name.endswith(".csv"):
-            try:
-                df = pd.read_csv(uploaded_file)
-                st.session_state.uploaded_df = df
-                df.head()
-                st.success("✅ CSV file uploaded successfully!")
-            except Exception as e:
-                st.error(f"❌ Error reading CSV file: {e}")
-
-        elif file_name.endswith(".xlsx"):
-            try:
-                df = pd.read_excel(uploaded_file)
-                st.session_state.uploaded_df = df
-                df.head()
-                st.success("✅ Excel file uploaded successfully!")
-            except Exception as e:
-                st.error(f"❌ Error reading Excel file: {e}")
+    uploaded_file = st.file_uploader("📤 Upload your dataset (.csv or .xlsx)", type=["csv", "xlsx"])
+    if uploaded_file:
+        if uploaded_file.name.endswith(".csv"):
+            st.session_state.df = pd.read_csv(uploaded_file)
         else:
-            st.warning("⚠️ Please upload a valid CSV or Excel file.")
+            st.session_state.df = pd.read_excel(uploaded_file)
+        st.success("✅ Dataset uploaded successfully!")
+        st.dataframe(st.session_state.df.head())
 
 elif choice == "🧹 Data Cleaning":
     st.subheader("🧹 Data Cleaning")
