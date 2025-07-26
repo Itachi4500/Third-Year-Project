@@ -6,7 +6,7 @@ from utils.visualizer import show_visuals
 from utils.modeler import run_modeling
 from utils.exporter import export_data
 from utils.powerbi_pipeline import powerbi_pipeline
-# from utils.live_dashboard import live_dashboard
+from utils.live_dashboard import live_dashboard
 
 
 # ------------------------------
@@ -158,12 +158,12 @@ elif choice == "📊 Power BI Pipeline":
         st.warning("⚠️ Please upload and clean your dataset first.")
         
 # Live Dashboard
-# elif choice == "📡 Live Dashboard":
-#     if "cleaned_df" in st.session_state:
-#         df = st.session_state.cleaned_df
-#         live_dashboard(df)
-#     else:
-#         st.warning("Please upload and clean your dataset first.")
+elif choice == "📡 Live Dashboard":
+    if "cleaned_df" in st.session_state:
+        df = st.session_state.cleaned_df
+        live_dashboard(df)
+    else:
+        st.warning("Please upload and clean your dataset first.")
 
 # ------------------------------
 # 📝 Auto-Generated Report Modal
