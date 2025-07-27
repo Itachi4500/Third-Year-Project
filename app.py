@@ -142,6 +142,11 @@ if choice == "📁 Upload Dataset":
         except Exception as e:
             st.error(f"❌ Error reading file: {e}")
 
+# ------------------------------
+# Only run this if a dataset exists
+# ------------------------------
+if "df" in st.session_state and st.session_state.df is not None:
+    df = st.session_state.df
 
         cleaning_steps = []
 
