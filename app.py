@@ -88,15 +88,6 @@ menu = {
 }
 choice = st.sidebar.radio("📂 **Select Operation**", list(menu.keys()))
 
-# Refresh the dataset
-# Maintain dataset state
-if "uploaded_df" in st.session_state:
-    st.session_state.df = st.session_state.uploaded_df
-if "cleaned_df" in st.session_state:
-    st.session_state.df = st.session_state.cleaned_df
-
-refresh_data()
-
 # ------------------------------
 # Dataset State
 # ------------------------------
@@ -119,28 +110,15 @@ else:
 st.title(menu[choice])
 st.markdown("---")
 
-uploaded_file = st.file_uploader("📁 Upload your dataset", type=["csv", "xlsx"])
 if choice == "📁 Upload Dataset":
-    df = upload_data()
-    
-    if uploaded_file is not None:
-        file_name = uploaded_file.name
-        try:
-            if file_name.endswith(".csv"):
-                df = pd.read_csv(uploaded_file)
-            elif file_name.endswith(".xlsx"):
-                df = pd.read_excel(uploaded_file)
-            else:
-                st.warning("⚠️ Please upload a CSV or Excel file.")
-                df = None
-    
-            if df is not None:
-                st.session_state.uploaded_df = df
-                st.success("✅ File uploaded and saved successfully!")
-                st.write(df.head())
-
-        except Exception as e:
-            st.error(f"❌ Error reading file: {e}")
+    uploaded_file = st.file_uploader("📤 Upload your dataset (.csv or .xlsx)", type=["csv", "xlsx"])
+    if uploaded_file:
+        if uploaded_file.name.endswith(".csv"):
+            st.session_state.df = pd.read_csv(uploaded_file)
+        else:
+            st.session_state.df = pd.read_excel(uploaded_file)
+        st.success("✅ Dataset uploaded successfully!")
+        st.dataframe(st.session_state.df.head())
 
 # ------------------------------
 # Only run this if a dataset exists
