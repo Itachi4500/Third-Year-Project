@@ -147,47 +147,45 @@ if choice == "📁 Upload Dataset":
 # ------------------------------
 if "df" in st.session_state and st.session_state.df is not None:
     df = st.session_state.df
-
     cleaning_steps = []
 
-        # 1. Drop missing values
-        if st.button("🧽 Drop Missing Values"):
-            df.dropna(inplace=True)
-            cleaning_steps.append("Dropped missing values")
-            st.success("Missing values removed!")
+    # 1. Drop missing values
+    if st.button("🧽 Drop Missing Values"):
+        df.dropna(inplace=True)
+        cleaning_steps.append("Dropped missing values")
+        st.success("Missing values removed!")
 
-        # 2. Normalize numerical columns
-        numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
-        cols_to_scale = st.multiselect("🔄 Normalize columns", numeric_cols)
+    # 2. Normalize numerical columns
+    numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
+    cols_to_scale = st.multiselect("🔄 Normalize columns", numeric_cols)
 
-        if st.button("⚖️ Normalize Selected Columns"):
-            for col in cols_to_scale:
-                min_val = df[col].min()
-                max_val = df[col].max()
-                df[col] = (df[col] - min_val) / (max_val - min_val)
-            cleaning_steps.append(f"Normalized columns: {', '.join(cols_to_scale)}")
-            st.success("Selected columns normalized!")
+    if st.button("⚖️ Normalize Selected Columns"):
+        for col in cols_to_scale:
+            min_val = df[col].min()
+            max_val = df[col].max()
+            df[col] = (df[col] - min_val) / (max_val - min_val)
+        cleaning_steps.append(f"Normalized columns: {', '.join(cols_to_scale)}")
+        st.success("Selected columns normalized!")
 
-        # Save final cleaned DataFrame
-        st.session_state.cleaned_df = df
+    # Save cleaned df
+    st.session_state.cleaned_df = df
 
-        # 🧠 Memory Logic
-        if cleaning_steps:
-            remember("cleaning_steps", cleaning_steps)
+    # 🧠 Memory Logic
+    if cleaning_steps:
+        remember("cleaning_steps", cleaning_steps)
 
-        st.markdown("---")
-        st.markdown("### 🧠 Cleaning Memory")
+    st.markdown("---")
+    st.markdown("### 🧠 Cleaning Memory")
 
-        steps = recall("cleaning_steps")
-        if steps:
-            st.info(f"Cleaning steps learned: {steps}")
+    steps = recall("cleaning_steps")
+    if steps:
+        st.info(f"Cleaning steps learned: {steps}")
 
-        show_memory()
+    show_memory()
 
-        if st.button("🗑️ Clear Memory"):
-            clear_all_memory()
-            st.success("Memory cleared.")
-
+    if st.button("🗑️ Clear Memory"):
+        clear_all_memory()
+        st.success("Memory cleared.")
 
 elif choice == "📊 Exploratory Data Analysis":
     if st.session_state.df is not None:
