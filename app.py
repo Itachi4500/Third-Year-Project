@@ -139,8 +139,8 @@ if choice == "📁 Upload Dataset":
                 st.success("✅ File uploaded and saved successfully!")
                 st.write(df.head())
 
-            except Exception as e:
-                st.error(f"❌ Error reading file: {e}")
+        except Exception as e:
+            st.error(f"❌ Error reading file: {e}")
 
 
         cleaning_steps = []
