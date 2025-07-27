@@ -148,7 +148,7 @@ if choice == "📁 Upload Dataset":
 if "df" in st.session_state and st.session_state.df is not None:
     df = st.session_state.df
 
-        cleaning_steps = []
+    cleaning_steps = []
 
         # 1. Drop missing values
         if st.button("🧽 Drop Missing Values"):
