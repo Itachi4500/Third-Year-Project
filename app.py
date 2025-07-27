@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from utils.upload import upload_data
+# from utils.upload import upload_data
 from utils.cleaner import clean_data
 from utils.eda import run_eda
 from utils.visualizer import show_visuals
