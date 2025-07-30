@@ -72,5 +72,5 @@ def run_eda(df):
         st.write("### Bottom Records")
         st.dataframe(df.tail(n))
         
-# elif choice == "Exploratory Data Analysis":
-#     run_eda(st.session_state.df)
+elif choice == "Exploratory Data Analysis":
+    run_eda(st.session_state.df)
