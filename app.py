@@ -23,8 +23,8 @@ if "df" not in st.session_state:
 
 # --- Advanced Sidebar Navigation ---
 nav = st.sidebar.radio("📌 Navigation", [
-    "Upload Data",
     "Refresh",
+    "Upload Data",
     "Data Cleaning",
     "EDA",
     "Visualizations",
