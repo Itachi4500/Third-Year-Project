@@ -4,6 +4,10 @@ import pandas as pd
 def run_eda(df):
     st.subheader("📊 Exploratory Data Analysis")
 
+    if df.empty:
+        st.error("❌ The uploaded dataset is empty.")
+        return
+
     analysis_option = st.selectbox("Choose EDA Operation", [
         "Data Overview",
         "Column Types",
@@ -22,34 +26,40 @@ def run_eda(df):
 
     elif analysis_option == "Column Types":
         st.write("### Column Data Types")
-        st.write(df.dtypes)
+        st.dataframe(pd.DataFrame(df.dtypes, columns=["Data Type"]))
 
     elif analysis_option == "Summary Statistics":
         st.write("### Summary Statistics")
-        st.write(df.describe(include='all'))
+        st.dataframe(df.describe(include='all').transpose())
 
     elif analysis_option == "Missing Values":
         st.write("### Missing Values Count")
-        st.write(df.isnull().sum())
+        missing_count = df.isnull().sum()
+        st.dataframe(missing_count[missing_count > 0])
+
         st.write("### Percentage of Missing Values")
-        st.write((df.isnull().sum() / len(df)) * 100)
+        missing_percent = (missing_count / len(df)) * 100
+        st.dataframe(missing_percent[missing_percent > 0])
 
     elif analysis_option == "Unique Values":
         st.write("### Unique Values in Each Column")
-        unique_vals = {col: df[col].nunique() for col in df.columns}
-        st.write(pd.DataFrame(unique_vals.items(), columns=["Column", "Unique Values"]))
+        unique_vals = pd.DataFrame({"Column": df.columns, "Unique Values": df.nunique().values})
+        st.dataframe(unique_vals)
 
     elif analysis_option == "Correlation Matrix":
         st.write("### Correlation Matrix")
         corr_matrix = df.corr(numeric_only=True)
-        st.dataframe(corr_matrix.style.background_gradient(cmap='coolwarm'))
+        if not corr_matrix.empty:
+            st.dataframe(corr_matrix.style.background_gradient(cmap='coolwarm'))
+        else:
+            st.warning("No numeric data available for correlation.")
 
     elif analysis_option == "Value Counts for Categorical Columns":
         cat_cols = df.select_dtypes(include='object').columns
-        if not cat_cols.empty:
-            for col in cat_cols:
-                st.write(f"### Value Counts for `{col}`")
-                st.write(df[col].value_counts())
+        if len(cat_cols) > 0:
+            selected_col = st.selectbox("Select Categorical Column", cat_cols)
+            st.write(f"### Value Counts for `{selected_col}`")
+            st.dataframe(df[selected_col].value_counts().reset_index().rename(columns={"index": selected_col, selected_col: "Count"}))
         else:
             st.warning("No categorical columns found.")
 
@@ -71,6 +81,3 @@ def run_eda(df):
         st.dataframe(df.head(n))
         st.write("### Bottom Records")
         st.dataframe(df.tail(n))
-        
-elif choice == "Exploratory Data Analysis":
-    run_eda(st.session_state.df)
