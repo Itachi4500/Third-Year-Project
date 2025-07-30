@@ -1,85 +1,81 @@
 import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def show_visuals(df):
-    st.subheader("📊 Visualization Dashboard")
-    
-    chart_type = st.selectbox("Select Chart Type", [
-        "Histogram", "Heatmap", "Bar Chart", "Pie Chart", "Bubble Chart"
+    st.subheader("📊 Advanced Visualization Dashboard")
+
+    chart_type = st.selectbox("Select Visualization Type", [
+        "Histogram", "Heatmap", "Bar Chart", "Pie Chart", "Donut Chart",
+        "Line Chart", "Scatter Plot", "Bubble Chart"
     ])
- # Histogram 
+
+    numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+    cat_cols = df.select_dtypes(include='object').columns.tolist()
+
     if chart_type == "Histogram":
-        column = st.selectbox("Select Numeric Column", df.select_dtypes(include=['int64', 'float64']).columns)
-        bins = st.slider("Number of bins", 5, 100, 30)
-        fig, ax = plt.subplots()
-        sns.histplot(df[column], bins=bins, kde=True, ax=ax)
-        st.pyplot(fig)
-# Heatmap
+        col = st.selectbox("Choose Numeric Column", numeric_cols)
+        bins = st.slider("Number of Bins", 5, 100, 30)
+        fig = px.histogram(df, x=col, nbins=bins, marginal="box", title=f"Histogram of {col}")
+        st.plotly_chart(fig, use_container_width=True)
+
     elif chart_type == "Heatmap":
-        st.write("Correlation Matrix")
+        st.write("Correlation Matrix (numeric only)")
         corr = df.corr(numeric_only=True)
         fig, ax = plt.subplots(figsize=(10, 6))
-        sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax)
+        sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
         st.pyplot(fig)
-# Bar Chart
+
     elif chart_type == "Bar Chart":
-        col = st.selectbox("Select Categorical Column", df.select_dtypes(include='object').columns)
-        fig, ax = plt.subplots()
-        df[col].value_counts().plot(kind='bar', ax=ax, color='skyblue')
-        ax.set_title(f"Bar Chart of {col}")
-        st.pyplot(fig)
-# Pie Chart
-    elif chart_type == "Pie Chart":
-        col = st.selectbox("Select Column for Pie Chart", df.select_dtypes(include='object').columns)
-        pie_data = df[col].value_counts()
-        fig, ax = plt.subplots()
-        ax.pie(pie_data, labels=pie_data.index, autopct="%1.1f%%", startangle=90)
-        ax.set_title(f"Pie Chart of {col}")
-        st.pyplot(fig)
+        col = st.selectbox("Choose Categorical Column", cat_cols)
+        agg_col = st.selectbox("Optional: Aggregate by Numeric Column", ["None"] + numeric_cols)
+        if agg_col == "None":
+            fig = px.bar(df[col].value_counts().reset_index(), x="index", y=col,
+                         labels={"index": col, col: "Count"}, title=f"Bar Chart of {col}")
+        else:
+            grouped = df.groupby(col)[agg_col].mean().reset_index()
+            fig = px.bar(grouped, x=col, y=agg_col, title=f"Mean of {agg_col} by {col}")
+        st.plotly_chart(fig, use_container_width=True)
 
-    elif chart_type == "Pie Chart":
-        col = st.selectbox("Select Column for Pie Chart", df.select_dtypes(include='object').columns)
-
-        # Calculate value counts
-        pie_data = df[col].value_counts()
-        total_categories = len(pie_data)
-
-        # Limit to top N categories + others
-        top_n = st.slider("Top N Categories", 3, min(20, total_categories), 10)
-        top_values = pie_data[:top_n]
-        if total_categories > top_n:
-            top_values["Others"] = pie_data[top_n:].sum()
-
-        labels = top_values.index
-        sizes = top_values.values
-
-        # Explode the largest section for effect
-        explode = [0.05 if i == 0 else 0 for i in range(len(sizes))]
-
-        # Colors
-        colors = sns.color_palette("pastel", len(sizes))
-
-        # Plot
-        fig, ax = plt.subplots()
-        wedges, texts, autotexts = ax.pie(
-            sizes, labels=labels, autopct='%1.1f%%',
-            startangle=140, explode=explode, colors=colors,
-            textprops=dict(color="black", fontsize=10), pctdistance=0.85,
-            wedgeprops={'linewidth': 1, 'edgecolor': 'white'},
-            shadow=True
+    elif chart_type == "Pie Chart" or chart_type == "Donut Chart":
+        col = st.selectbox("Select Categorical Column for Pie", cat_cols)
+        value_counts = df[col].value_counts()
+        top_n = st.slider("Top Categories to Show", 3, min(20, len(value_counts)), 10)
+        top_data = value_counts[:top_n]
+        if len(value_counts) > top_n:
+            top_data["Others"] = value_counts[top_n:].sum()
+        fig = px.pie(
+            names=top_data.index,
+            values=top_data.values,
+            hole=0.4 if chart_type == "Donut Chart" else 0.0,
+            title=f"{chart_type} of {col}"
         )
+        st.plotly_chart(fig, use_container_width=True)
 
-        # Draw circle for donut style
-        centre_circle = plt.Circle((0, 0), 0.70, fc='white')
-        fig.gca().add_artist(centre_circle)
+    elif chart_type == "Line Chart":
+        x = st.selectbox("X-Axis", df.columns)
+        y = st.selectbox("Y-Axis (numeric)", numeric_cols)
+        color = st.selectbox("Optional Group By", ["None"] + cat_cols)
+        fig = px.line(df, x=x, y=y, color=color if color != "None" else None, title=f"{y} over {x}")
+        st.plotly_chart(fig, use_container_width=True)
 
-        ax.set_title(f"Pie Chart of {col}", fontsize=14)
-        ax.axis('equal')  # Equal aspect ratio ensures the pie is circular
-        st.pyplot(fig)
+    elif chart_type == "Scatter Plot":
+        x = st.selectbox("X-Axis", numeric_cols)
+        y = st.selectbox("Y-Axis", numeric_cols)
+        color = st.selectbox("Color By (Optional)", ["None"] + cat_cols)
+        fig = px.scatter(df, x=x, y=y, color=df[color] if color != "None" else None,
+                         title=f"Scatter Plot of {y} vs {x}")
+        st.plotly_chart(fig, use_container_width=True)
 
-# Line Chart
-
+    elif chart_type == "Bubble Chart":
+        x = st.selectbox("X-Axis", numeric_cols)
+        y = st.selectbox("Y-Axis", numeric_cols)
+        size = st.selectbox("Bubble Size", numeric_cols)
+        color = st.selectbox("Group by Category", ["None"] + cat_cols)
+        fig = px.scatter(df, x=x, y=y, size=size,
+                         color=df[color] if color != "None" else None,
+                         title=f"Bubble Chart: {y} vs {x} (size by {size})")
+        st.plotly_chart(fig, use_container_width=True)
