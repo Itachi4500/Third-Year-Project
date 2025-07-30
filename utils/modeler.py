@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
@@ -9,37 +10,57 @@ from sklearn.preprocessing import LabelEncoder
 def run_modeling(df):
     st.subheader("🧠 Self-Training Model Builder")
 
-    # Target selection
-    target = st.selectbox("Select Target Column", df.columns)
-    if target:
+    if df.empty:
+        st.error("❌ The dataset is empty.")
+        return
+
+    # Target column selection
+    target = st.selectbox("🎯 Select Target Column", df.columns)
+    if not target:
+        st.warning("⚠️ Please select a target column.")
+        return
+
+    # Split features and target
+    try:
         features = df.drop(columns=[target])
+        target_series = df[target]
+
+        # Encode categorical variables
         X = pd.get_dummies(features)
+        y = LabelEncoder().fit_transform(target_series)
 
-        # Label encode the target
-        y_raw = df[target]
-        y = LabelEncoder().fit_transform(y_raw)
+        # Train-test split
+        test_size = st.slider("🔀 Test Size (%)", 10, 50, 30)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size/100, stratify=y, random_state=42
+        )
 
-        # Split dataset (simulate unlabeled data)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y)
-
-        # Simulate partial labels
-        import numpy as np
-        rng = np.random.RandomState(42)
-        mask = rng.rand(len(y_train)) < 0.5
+        # Simulate unlabeled data (semi-supervised learning)
+        unlabeled_ratio = st.slider("❓ % of Unlabeled Training Data", 10, 90, 50)
+        mask = np.random.rand(len(y_train)) < (unlabeled_ratio / 100)
         y_train_partial = np.copy(y_train)
-        y_train_partial[~mask] = -1  # Unlabeled
+        y_train_partial[~mask] = -1
 
-        # Base model
-        base_model = RandomForestClassifier(n_estimators=100)
+        st.markdown("🔎 Label Distribution (Training)")
+        label_dist = pd.Series(y_train_partial).replace(-1, 'Unlabeled').value_counts()
+        st.dataframe(label_dist.rename_axis("Label").reset_index(name="Count"))
+
+        # Model settings
+        n_estimators = st.number_input("🌲 Number of Trees (Random Forest)", 10, 500, 100)
+        base_model = RandomForestClassifier(n_estimators=n_estimators, random_state=42)
         self_training_model = SelfTrainingClassifier(base_model)
 
-        # Train
-        self_training_model.fit(X_train, y_train_partial)
+        # Train model
+        with st.spinner("Training Self-Training Classifier..."):
+            self_training_model.fit(X_train, y_train_partial)
 
-        # Predict
+        # Predict & Evaluate
         y_pred = self_training_model.predict(X_test)
 
-        # Output
-        st.markdown("### ✅ Model Performance")
-        st.code(classification_report(y_test, y_pred), language='text')
-        st.write("Accuracy:", accuracy_score(y_test, y_pred))
+        st.markdown("### ✅ Classification Report")
+        st.code(classification_report(y_test, y_pred), language="text")
+
+        st.success(f"🎯 Accuracy: {accuracy_score(y_test, y_pred):.4f}")
+
+    except Exception as e:
+        st.error(f"❌ Error during modeling: {e}")
