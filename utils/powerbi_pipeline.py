@@ -94,7 +94,7 @@ def show_data_overview(df):
     st.subheader("Descriptive Statistics (Numeric Columns)")
     st.dataframe(df.describe().T)
 
-def show_data_transformation():
+def show_data_transformation(df):
     st.header("🛠️ Data Transformation (Power Query Style)")
     st.write("Modify your dataset. Changes made here will reflect across the app.")
 
@@ -168,7 +168,7 @@ def show_data_transformation():
     st.subheader("Transformed Data Preview")
     st.dataframe(st.session_state.transformed_df.head())
 
-def apply_global_filters():
+def apply_global_filters(df):
     """Applies filters to the transformed_df and stores it in filtered_df."""
     df = st.session_state.transformed_df.copy()
 
