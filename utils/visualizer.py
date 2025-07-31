@@ -29,12 +29,12 @@ def show_visuals(df):
     #         bins = st.sidebar.slider("Number of Bins", 5, 100, 30)
     #         fig = px.histogram(df, x=col, nbins=bins, marginal="box", title=f"Histogram of {col}")
     #         st.plotly_chart(fig, use_container_width=True)
-    if chart_type == "Histogram":
-        column = st.selectbox("Select Numeric Column", df.select_dtypes(include=['int64', 'float64']).columns)
-        bins = st.slider("Number of bins", 5, 100, 30)
-        fig, ax = plt.subplots()
-        sns.histplot(df[column], bins=bins, kde=True, ax=ax)
-        st.pyplot(fig)
+        if chart_type == "Histogram":
+            column = st.selectbox("Select Numeric Column", df.select_dtypes(include=['int64', 'float64']).columns)
+            bins = st.slider("Number of bins", 5, 100, 30)
+            fig, ax = plt.subplots()
+            sns.histplot(df[column], bins=bins, kde=True, ax=ax)
+            st.pyplot(fig)
         
         else:
             st.warning("No numeric columns available for histogram.")
