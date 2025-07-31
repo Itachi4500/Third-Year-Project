@@ -28,7 +28,7 @@ def initialize_state(df):
 # --- Main App Logic ---
 def powerbi_pipeline(df):
     """Main function to run the Streamlit app."""
-    initialize_state()
+    initialize_state(df)
 
     st.sidebar.title("📈 Insightify BI")
     st.sidebar.write("Upload your data and start exploring!")
