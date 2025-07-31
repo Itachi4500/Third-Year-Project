@@ -9,3 +9,4 @@ openpyxl
 xlsxwriter
 joblib
 SMOTE
+imbalanced-learn
