@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(layout="wide", page_title="Insightify BI Dashboard")
 
 # --- State Management ---
-def initialize_state():
+def initialize_state(df):
     """Initializes session state variables."""
     if 'df' not in st.session_state:
         st.session_state.df = pd.DataFrame()
