@@ -10,3 +10,4 @@ xlsxwriter
 joblib
 SMOTE
 imbalanced-learn
+Shap
