@@ -11,3 +11,4 @@ joblib
 SMOTE
 imbalanced-learn
 Shap
+kaleido
