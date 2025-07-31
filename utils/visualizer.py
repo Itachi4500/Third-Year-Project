@@ -16,7 +16,7 @@ def show_visuals(df):
         st.header("🧭 Visualization Navigator")
         chart_type = st.selectbox("Choose Chart Type", [
             "Histogram", "Heatmap", "Bar Chart", "Pie Chart", "Donut Chart",
-            "Line Chart", "Scatter Plot", "Bubble Chart"
+            "Line Chart", "Scatter Plot", "Bubble Chart", "Pair Plot"
         ])
         st.markdown("---")
 
@@ -116,3 +116,6 @@ def show_visuals(df):
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("At least three numeric columns required for bubble chart.")
+# in process             
+    elif chart_type == "Pair Plot"
+    
