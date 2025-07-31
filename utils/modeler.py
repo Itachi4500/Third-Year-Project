@@ -14,19 +14,29 @@ def run_modeling(df):
         st.error("❌ The dataset is empty.")
         return
 
+    # Keep only numeric columns (including target)
+    numeric_df = df.select_dtypes(include=[np.number])
+    if numeric_df.empty:
+        st.error("❌ No numeric columns found in the dataset.")
+        return
+
     # Target column selection
-    target = st.selectbox("🎯 Select Target Column", df.columns)
+    target = st.selectbox("🎯 Select Target Column", numeric_df.columns)
     if not target:
         st.warning("⚠️ Please select a target column.")
         return
 
     # Split features and target
     try:
-        features = df.drop(columns=[target])
-        target_series = df[target]
+        features = numeric_df.drop(columns=[target])
+        target_series = numeric_df[target]
 
-        # Encode categorical variables
-        X = pd.get_dummies(features)
+        if features.empty:
+            st.error("❌ No numeric feature columns available for modeling.")
+            return
+
+        # No need for get_dummies, as only numeric columns are used
+        X = features
         y = LabelEncoder().fit_transform(target_series)
 
         # Train-test split
