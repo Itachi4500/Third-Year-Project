@@ -13,16 +13,16 @@ import matplotlib.pyplot as plt
 st.set_page_config(layout="wide", page_title="Insightify BI Dashboard")
 
 # --- State Management ---
-def initialize_state():
-    """Initializes session state variables."""
-    if 'df' not in st.session_state:
-        st.session_state.df = pd.DataFrame()
-    if 'transformed_df' not in st.session_state:
-        st.session_state.transformed_df = pd.DataFrame()
-    if 'dashboard_config' not in st.session_state:
-        st.session_state.dashboard_config = {'kpis': [], 'charts': []}
-    if 'filtered_df' not in st.session_state:
-        st.session_state.filtered_df = pd.DataFrame()
+# def initialize_state():
+#     """Initializes session state variables."""
+#     if 'df' not in st.session_state:
+#         st.session_state.df = pd.DataFrame()
+#     if 'transformed_df' not in st.session_state:
+#         st.session_state.transformed_df = pd.DataFrame()
+#     if 'dashboard_config' not in st.session_state:
+#         st.session_state.dashboard_config = {'kpis': [], 'charts': []}
+#     if 'filtered_df' not in st.session_state:
+#         st.session_state.filtered_df = pd.DataFrame()
 
 
 # --- Main App Logic ---
