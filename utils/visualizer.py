@@ -27,9 +27,52 @@ def show_visuals(df):
         if numeric_cols:
             col = st.sidebar.selectbox("Numeric Column", numeric_cols)
             bins = st.sidebar.slider("Number of Bins", 5, 100, 30)
-            fig = px.histogram(df, x=col, nbins=bins, marginal="box", title=f"Histogram of {col}")
+            color_group = st.sidebar.selectbox("Group By (optional)", ["None"] + cat_cols)
+            show_density = st.sidebar.checkbox("Show Density Curve", value=False)
+            show_stats = st.sidebar.checkbox("Show Statistics", value=True)
+
+            # Plotly histogram
+            fig = px.histogram(
+                df, 
+                x=col, 
+                nbins=bins, 
+                color=color_group if color_group != "None" else None,
+                marginal="box", 
+                opacity=0.75,
+                barmode='overlay',
+                title=f"Histogram of {col}"
+            )
+
+            # Optionally add density curve using plotly
+            if show_density:
+                fig2 = px.histogram(
+                    df, 
+                    x=col, 
+                    nbins=bins, 
+                    color=color_group if color_group != "None" else None,
+                    marginal="violin", 
+                    histnorm='probability density',
+                    opacity=0.0, # Hide bars, show only density
+                    title=f"Density Curve for {col}"
+                )
+                for d in fig2.data:
+                    d.type = "scatter"
+                    d.mode = "lines"
+                    d.opacity = 1.0
+                    d.showlegend = False
+                    fig.add_trace(d)
+
             st.plotly_chart(fig, use_container_width=True)
-        
+
+            # Show statistics
+            if show_stats:
+                desc = df[col].describe()
+                st.markdown("#### 📌 Statistics")
+                st.write(pd.DataFrame(desc).T)
+
+            # Show raw data option
+            if st.checkbox("Show Raw Data", value=False):
+                st.dataframe(df[[col]].head(100))
         else:
             st.warning("No numeric columns available for histogram.")
 
@@ -117,5 +160,5 @@ def show_visuals(df):
         else:
             st.warning("At least three numeric columns required for bubble chart.")
 # in process             
-    elif chart_type == "Pair Plot"
-    
+    elif chart_type == "Pair Plot":
+        pass
