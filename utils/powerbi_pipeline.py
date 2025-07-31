@@ -21,6 +21,9 @@ def initialize_state():
         st.session_state.transformed_df = pd.DataFrame()
     if 'dashboard_config' not in st.session_state:
         st.session_state.dashboard_config = {'kpis': [], 'charts': []}
+    if 'filtered_df' not in st.session_state:
+        st.session_state.filtered_df = pd.DataFrame()
+
 
 # --- Main App Logic ---
 def powerbi_pipeline():
@@ -33,9 +36,13 @@ def powerbi_pipeline():
 
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
+        # Reset state if a new file is uploaded
         if st.session_state.df.empty or not st.session_state.df.equals(df):
             st.session_state.df = df
-            st.session_state.transformed_df = df.copy() # Start with a copy
+            st.session_state.transformed_df = df.copy()
+            st.session_state.filtered_df = df.copy()
+            st.session_state.dashboard_config = {'kpis': [], 'charts': []}
+
 
     if st.session_state.df.empty:
         st.info("Please upload a CSV file to begin.")
@@ -43,7 +50,7 @@ def powerbi_pipeline():
 
     # --- Sidebar Navigation and Global Filters ---
     page = st.sidebar.radio("Navigate", ["Data Overview", "Data Transformation", "Dashboard Builder", "Auto Insights", "ML Studio"])
-    
+
     with st.sidebar.expander("🌐 Global Filters"):
         apply_global_filters()
 
@@ -66,7 +73,7 @@ def powerbi_pipeline():
 def show_data_overview(df):
     st.header("📁 Data Overview")
     st.write("Here's a first look at your raw dataset.")
-    
+
     st.subheader("Data Preview")
     st.dataframe(df.head())
 
@@ -91,9 +98,7 @@ def show_data_transformation():
     st.header("🛠️ Data Transformation (Power Query Style)")
     st.write("Modify your dataset. Changes made here will reflect across the app.")
 
-    if 'transformed_df' not in st.session_state:
-        st.session_state.transformed_df = st.session_state.df.copy()
-
+    # Ensure we are working with the correct dataframe from session state
     df = st.session_state.transformed_df
 
     st.sidebar.subheader("Transformation Actions")
@@ -112,10 +117,11 @@ def show_data_transformation():
             elif method == "Fill with Mode":
                 df[col].fillna(df[col].mode()[0], inplace=True)
             elif method == "Forward Fill":
-                df.fillna(method='ffill', inplace=True)
+                df[col].fillna(method='ffill', inplace=True)
             elif method == "Backward Fill":
-                df.fillna(method='bfill', inplace=True)
+                df[col].fillna(method='bfill', inplace=True)
             st.success(f"Applied '{method}' to column '{col}'.")
+            st.rerun()
 
     elif action == "Change Data Types":
         col = st.selectbox("Select Column", df.columns)
@@ -127,6 +133,7 @@ def show_data_transformation():
                 else:
                     df[col] = df[col].astype(new_type)
                 st.success(f"Converted '{col}' to {new_type}.")
+                st.rerun()
             except Exception as e:
                 st.error(f"Failed to convert: {e}")
 
@@ -137,6 +144,7 @@ def show_data_transformation():
             try:
                 df[new_col_name] = pd.eval(formula, engine='python', local_dict={'df': df})
                 st.success(f"Created column '{new_col_name}'.")
+                st.rerun()
             except Exception as e:
                 st.error(f"Invalid formula: {e}")
 
@@ -148,11 +156,13 @@ def show_data_transformation():
             if st.button("Rename"):
                 df.rename(columns={col_to_rename: new_name}, inplace=True)
                 st.success(f"Renamed '{col_to_rename}' to '{new_name}'.")
+                st.rerun()
         else: # Drop
             cols_to_drop = st.multiselect("Columns to Drop", df.columns)
             if st.button("Drop Selected"):
                 df.drop(columns=cols_to_drop, inplace=True)
                 st.success(f"Dropped columns: {cols_to_drop}.")
+                st.rerun()
 
     st.session_state.transformed_df = df
     st.subheader("Transformed Data Preview")
@@ -161,20 +171,20 @@ def show_data_transformation():
 def apply_global_filters():
     """Applies filters to the transformed_df and stores it in filtered_df."""
     df = st.session_state.transformed_df.copy()
-    
+
     filter_cols = st.multiselect("Select columns to filter by", df.columns, key="global_filter_cols")
-    
+
     filtered_df = df
     for col in filter_cols:
         if pd.api.types.is_numeric_dtype(df[col]):
-            min_val, max_val = df[col].min(), df[col].max()
+            min_val, max_val = float(df[col].min()), float(df[col].max())
             selected_range = st.slider(f"Filter {col}", min_val, max_val, (min_val, max_val), key=f"filter_{col}")
             filtered_df = filtered_df[(filtered_df[col] >= selected_range[0]) & (filtered_df[col] <= selected_range[1])]
         else:
             unique_vals = df[col].dropna().unique()
-            selected_vals = st.multiselect(f"Filter {col}", unique_vals, default=unique_vals, key=f"filter_{col}")
+            selected_vals = st.multiselect(f"Filter {col}", unique_vals, default=list(unique_vals), key=f"filter_{col}")
             filtered_df = filtered_df[filtered_df[col].isin(selected_vals)]
-            
+
     st.session_state.filtered_df = filtered_df
 
 def create_custom_dashboard(df):
@@ -188,6 +198,7 @@ def create_custom_dashboard(df):
             agg = st.selectbox("Aggregation", ["Sum", "Average", "Count", "Max", "Min"])
             if st.button("Add KPI"):
                 st.session_state.dashboard_config['kpis'].append({'col': col, 'agg': agg})
+                st.rerun()
         else: # Chart
             chart_type = st.selectbox("Chart Type", ["Bar", "Line", "Scatter", "Pie"])
             x_axis = st.selectbox("X-axis", df.columns)
@@ -195,11 +206,13 @@ def create_custom_dashboard(df):
             y_axis = st.selectbox("Y-axis (numeric)", y_axis_cols if chart_type != "Pie" else [None], disabled=chart_type=="Pie")
             if st.button("Add Chart"):
                 st.session_state.dashboard_config['charts'].append({'type': chart_type, 'x': x_axis, 'y': y_axis})
+                st.rerun()
 
     # Render KPIs
     if st.session_state.dashboard_config['kpis']:
         st.subheader("Key Performance Indicators")
-        kpi_cols = st.columns(len(st.session_state.dashboard_config['kpis']))
+        num_kpis = len(st.session_state.dashboard_config['kpis'])
+        kpi_cols = st.columns(num_kpis)
         for i, kpi in enumerate(st.session_state.dashboard_config['kpis']):
             with kpi_cols[i]:
                 if kpi['agg'] == 'Sum': value = df[kpi['col']].sum()
@@ -208,10 +221,11 @@ def create_custom_dashboard(df):
                 elif kpi['agg'] == 'Max': value = df[kpi['col']].max()
                 elif kpi['agg'] == 'Min': value = df[kpi['col']].min()
                 st.metric(f"{kpi['agg']} of {kpi['col']}", f"{value:,.2f}")
-    
+
     # Render Charts
     if st.session_state.dashboard_config['charts']:
         st.subheader("Charts")
+        num_charts = len(st.session_state.dashboard_config['charts'])
         chart_cols = st.columns(2)
         for i, chart in enumerate(st.session_state.dashboard_config['charts']):
             with chart_cols[i % 2]:
@@ -240,7 +254,7 @@ def auto_insights(df):
         fig, ax = plt.subplots()
         sns.heatmap(corr_matrix, annot=False, cmap='viridis', ax=ax)
         st.pyplot(fig)
-        
+
         # Top correlations
         corr_unstacked = corr_matrix.unstack().sort_values(ascending=False)
         corr_unstacked = corr_unstacked[corr_unstacked != 1.0]
@@ -268,7 +282,7 @@ def run_ml_studio(df):
     st.write("Train a model and make predictions.")
 
     problem_type = st.selectbox("Select Problem Type", ["Classification", "Regression"])
-    
+
     target_col = st.selectbox("🎯 Select Target Column", df.columns)
     feature_cols = st.multiselect("🧩 Select Feature Columns", [c for c in df.columns if c != target_col])
 
@@ -282,17 +296,18 @@ def run_ml_studio(df):
     X = pd.get_dummies(X, drop_first=True) # One-hot encode categorical features
 
     if problem_type == "Classification" and not pd.api.types.is_numeric_dtype(y):
-        y, _ = pd.factorize(y) # Label encode target
-
+        y, class_names = pd.factorize(y) # Label encode target
+        st.session_state.ml_class_names = class_names
+    
     if st.button("🚀 Train Model"):
         with st.spinner("Training in progress..."):
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
-            
+
             if problem_type == "Classification":
                 model = RandomForestClassifier(n_estimators=100, random_state=42)
                 model.fit(X_train, y_train)
                 y_pred = model.predict(X_test)
-                
+
                 st.subheader("Classification Report")
                 st.text(classification_report(y_test, y_pred))
 
@@ -320,7 +335,7 @@ def run_ml_studio(df):
                 fig.add_trace(go.Scatter(x=[y_test.min(), y_test.max()], y=[y_test.min(), y_test.max()], mode='lines', name='Ideal', line=dict(dash='dash')))
                 fig.update_layout(xaxis_title="Actual Values", yaxis_title="Predicted Values")
                 st.plotly_chart(fig, use_container_width=True)
-            
+
             # Feature Importance
             st.subheader("Feature Importance")
             importance_df = pd.DataFrame({'Feature': X.columns, 'Importance': model.feature_importances_}).sort_values('Importance', ascending=False)
@@ -328,6 +343,7 @@ def run_ml_studio(df):
 
             st.session_state.ml_model = model
             st.session_state.ml_features = X.columns
+            st.session_state.ml_problem_type = problem_type
 
     # What-if analysis
     if 'ml_model' in st.session_state:
@@ -335,14 +351,27 @@ def run_ml_studio(df):
         with st.form("prediction_form"):
             inputs = {}
             for col in st.session_state.ml_features:
-                inputs[col] = st.number_input(f"Input for {col}", value=0)
-            
+                # Align input types with original data if possible
+                original_col_name = col.split('_')[0]
+                if original_col_name in df.columns and pd.api.types.is_numeric_dtype(df[original_col_name]):
+                     inputs[col] = st.number_input(f"Input for {col}", value=float(df[original_col_name].mean()))
+                else:
+                     inputs[col] = st.number_input(f"Input for {col}", value=0)
+
+
             submitted = st.form_submit_button("Predict")
             if submitted:
                 input_df = pd.DataFrame([inputs])
                 prediction = st.session_state.ml_model.predict(input_df)[0]
-                st.success(f"**Predicted Outcome: `{prediction}`**")
+                
+                if st.session_state.ml_problem_type == "Classification" and 'ml_class_names' in st.session_state:
+                    prediction_label = st.session_state.ml_class_names[prediction]
+                    st.success(f"**Predicted Outcome: `{prediction_label}`**")
+                else:
+                    st.success(f"**Predicted Outcome: `{prediction:,.2f}`**")
 
 
 if __name__ == "__main__":
+    # The main function should be called without arguments.
+    # It uses st.session_state to manage data internally.
     powerbi_pipeline()
