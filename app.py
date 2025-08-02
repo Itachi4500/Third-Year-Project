@@ -9,6 +9,7 @@ from utils.eda import run_eda
 from utils.visualizer import show_visuals
 from utils.modeler import run_modeling
 from utils.exporter import export_data
+from utils.image import image_chart
 from utils.memory import remember, recall, forget, clear_all_memory, show_memory, show_memory_history
 from utils.powerbi_pipeline import powerbi_pipeline
 from utils.refresh import refresh_data
