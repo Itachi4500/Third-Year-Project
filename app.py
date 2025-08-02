@@ -35,6 +35,9 @@ nav = st.sidebar.radio("📌 Navigation", [
     "Memory & Notes"
 ])
 
+fig = image_chart()
+st.plotly_chart(fig)
+
 # --- Navigation Routing ---
 if nav == "Upload Data":
     df = upload_data()
