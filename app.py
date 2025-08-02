@@ -23,15 +23,15 @@ if "df" not in st.session_state:
 
 # --- Advanced Sidebar Navigation ---
 nav = st.sidebar.radio("📌 Navigation", [
-    "Refresh",
     "Upload Data",
     "Data Cleaning",
     "EDA",
     "Visualizations",
     "Model Training",
     "Power BI Pipeline",
-    "Memory & Notes",
-    "Export"
+    "Export",
+    "Refresh",
+    "Memory & Notes"
 ])
 
 # --- Navigation Routing ---
