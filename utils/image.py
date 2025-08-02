@@ -5,7 +5,7 @@ def image_chart():
     fig.add_trace(go.Bar(x=["A", "B", "C"], y=[10, 20, 30]))
     return fig
 
-
+def image_chart(fig):
     st.markdown("### 📤 Export Chart")
 
     # Try PNG export using Kaleido
