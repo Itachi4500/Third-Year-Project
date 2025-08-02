@@ -1,5 +1,11 @@
+import plotly.graph_objects as go
+
 def image_chart(fig):
     st.markdown("### 📤 Export Chart")
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=["A", "B", "C"], y=[10, 20, 30]))
+    return fig
+
 
     # Try PNG export using Kaleido
     try:
