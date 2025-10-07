@@ -12,5 +12,5 @@ SMOTE
 imbalanced-learn
 Shap
 kaleido
-fpdf shap 
+fpdf
 openai
