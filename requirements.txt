@@ -14,3 +14,4 @@ Shap
 kaleido
 fpdf
 openai
+pycaret
