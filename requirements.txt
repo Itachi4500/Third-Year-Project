@@ -1,5 +1,4 @@
 streamlit
-pandas
 numpy
 scikit-learn
 matplotlib
@@ -14,4 +13,5 @@ Shap
 kaleido
 fpdf
 openai
-pycaret
+pycaret>=3.3.2
+pandas-profiling>=3.2.0
