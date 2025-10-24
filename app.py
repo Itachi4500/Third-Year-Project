@@ -2,6 +2,15 @@
 import os, io, tempfile, warnings
 from datetime import datetime
 import streamlit as st, pandas as pd, numpy as np
+from utils.upload import upload_data
+from utils.cleaner import clean_data
+from utils.eda import run_eda
+from utils.visualizer import show_visuals
+from utils.modeler import run_modeling
+from utils.exporter import export_data
+from utils.memory import remember, recall, forget, clear_all_memory, show_memory, show_memory_history
+from utils.powerbi_pipeline import powerbi_pipeline
+from utils.refresh import refresh_data
 warnings.filterwarnings("ignore")
 
 # Optional libs
